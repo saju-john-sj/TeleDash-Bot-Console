@@ -94,12 +94,18 @@ export default function App() {
 
   const saveConfig = async (newConfig: any) => {
     try {
-      await axios.post('/api/config', newConfig);
-      fetchConfig();
-      fetchChats();
-    } catch (e) {
+      const res = await axios.post('/api/config', newConfig);
+      if (res.data.success) {
+        fetchConfig();
+        fetchChats();
+        alert('Configuration updated successfully!');
+      } else {
+        alert('Server returned an error. Check logs.');
+      }
+    } catch (e: any) {
       console.error(e);
-      alert('Failed to save config.');
+      const errorMsg = e.response ? `Server Error: ${e.response.status}` : 'Connection failed. Is the backend server running?';
+      alert(`Failed to save config: ${errorMsg}\nNote: This app requires a Node.js backend (like Cloud Run).`);
     }
   };
 

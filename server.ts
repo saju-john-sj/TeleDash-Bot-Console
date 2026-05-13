@@ -47,18 +47,22 @@ let botConfig: Config = {
 };
 
 let bot: Telegraf | null = null;
+let isBotRunning = false;
 
 async function startBot() {
   if (!botConfig.botToken) return;
   
-  if (bot) {
+  if (bot && isBotRunning) {
     try {
+      console.log("Stopping existing bot instance...");
       await bot.stop();
+      isBotRunning = false;
     } catch (e) {
-      console.error("Error stopping previous bot instance", e);
+      console.error("Error stopping previous bot instance:", (e as Error).message);
     }
   }
 
+  // Create new instance
   bot = new Telegraf(botConfig.botToken);
 
   bot.on('message', async (ctx) => {
@@ -124,15 +128,21 @@ async function startBot() {
           messages.push(aiMsg);
           io.emit('new_message', aiMsg);
         } catch (error) {
-          console.error("OpenRouter automation error:", error);
+          console.error("OpenRouter automation error:", (error as any).response?.data || (error as Error).message);
         }
       }
     }
   });
 
-  bot.launch().catch(err => {
-    console.error("Telegraf launch error:", err);
-  });
+  try {
+    // dropPendingUpdates: true helps avoid the 409 conflict on restarts
+    await bot.launch({ dropPendingUpdates: true });
+    isBotRunning = true;
+    console.log("Bot started successfully");
+  } catch (err) {
+    console.error("Telegraf launch error:", (err as Error).message);
+    isBotRunning = false;
+  }
 }
 
 // Initialize server
