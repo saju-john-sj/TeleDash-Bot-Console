@@ -1,0 +1,6 @@
+{
+  "name": "TeleDash: Bot Console",
+  "description": "A real-time web console for managing Telegram bots, featuring admin chat, automated replies, and optional AI automation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
